@@ -1,0 +1,67 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs and runtime files
+*.log
+*.sqlite3
+*.db
+
+# Byte-compiled / optimized / DLL files
+*.pyd
+*.so
+*.egg
+*.egg-info/
+
+# Distribution / packaging
+build/
+dist/
+.eggs/
+*.egg-info/
+.python-version
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Pytest cache
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+
+# IDE files
+.idea/
+*.iml
+
+# Local config
+local_settings.py
+
+# Generated files
+*.pyc
+
+# Optional: lock files handled by dependency manager
+poetry.lock
+Pipfile.lock
+
+# Memory files
+meeting_memory_db/
+episodic_memory.json

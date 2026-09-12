@@ -1,0 +1,25 @@
+# Chapter 9 — From Prototype to Production
+# Core
+anthropic>=0.40.0
+python-dotenv>=1.0.0
+
+# LLM providers
+openai>=1.30.0                # OpenAI GPT-4o / GPT-4o-mini
+
+# Observability — LangSmith
+langsmith>=0.1.147
+
+# Observability + Evaluation — Arize Phoenix
+arize-phoenix>=5.0.0
+arize-phoenix-otel>=0.16.0
+arize-phoenix-evals>=0.17.0
+opentelemetry-sdk>=1.27.0
+openinference-instrumentation>=0.1.19
+openinference-instrumentation-anthropic>=0.1.17   # auto-captures Anthropic SDK calls
+openinference-instrumentation-openai>=0.1.14      # auto-captures OpenAI SDK calls
+
+# Phoenix cloud transport (used when PHOENIX_MODE=cloud)
+opentelemetry-exporter-otlp-proto-http>=1.27.0
+
+# Utilities
+rich>=13.0.0          # pretty terminal output
