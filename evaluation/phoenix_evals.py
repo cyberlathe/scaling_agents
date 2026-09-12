@@ -15,8 +15,11 @@ Results are logged back to Phoenix and visible in the Evals tab.
 import pandas as pd
 from typing import Optional
 
+from phoenix.evals import async_evaluate_dataframe
+
 
 from tools.mock_helpdesk import verify_urls
+from observability.phoenix_setup import flush_phoenix
 
 # Guard imports — phoenix-evals is optional
 try:
@@ -84,7 +87,7 @@ def run_url_verification(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(**pd.DataFrame(results).to_dict("list"))
 
 
-def run_phoenix_evals(
+async def run_phoenix_evals(
     ticket_results: list[dict],
     project_name: str = "chapter-09",
     concurrency: int = 4,
@@ -132,12 +135,14 @@ def run_phoenix_evals(
         elif OPENAI_KEY:
             judge = LLM(provider="openai", model=OPENAI_MODEL_GPT4O_MINI, api_key=OPENAI_KEY)
 
+        flush_phoenix()
         px_client = Client(
-            base_url="https://app.phoenix.arize.com/s/cyberlathe",
-            api_key=PHOENIX_API_KEY
-            )
-        df = px_client.spans.get_spans_dataframe(project_identifier=project_name)
-        parent_spans = df[df["span_kind"] == "CHAIN"]
+            base_url=PHOENIX_ENDPOINT or "http://localhost:6006",
+            api_key=PHOENIX_API_KEY or None,
+        )
+        df = px_client.spans.get_spans_dataframe(project_identifier=project_name, limit=3)
+        # parent_spans = df
+        parent_spans = df[df["span_kind"] == "LLM"]
 
         # from phoenix.evals import async_evaluate_dataframe
         # from phoenix.trace import suppress_tracing
@@ -152,13 +157,14 @@ def run_phoenix_evals(
         #                     ]
         #     )
 
-        results_df = evaluate_dataframe(
+        results_df = await async_evaluate_dataframe(
             dataframe=parent_spans,
             evaluators=[
                             HallucinationEvaluator(judge),   # flags unsupported factual claims
                             CorrectnessEvaluator(judge),   # checks answers match retrieved context
                             RetrievalRelevanceEvaluator(judge),       # did response address the actual question?
-                        ]
+                        ],
+                        concurrency=10,
         )
 
         from phoenix.evals.utils import to_annotation_dataframe

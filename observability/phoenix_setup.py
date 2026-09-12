@@ -15,14 +15,14 @@ from config.settings import PHOENIX_MODE, PHOENIX_API_KEY, PHOENIX_ENDPOINT, LLM
 
 _phoenix_session = None
 _phoenix_instrumented = False
+_phoenix_provider = None
 _PHOENIX_AVAILABLE = False
 _OPENINFERENCE_AVAILABLE = False
 
 # Try importing Phoenix
 try:
     import phoenix as px
-    if PHOENIX_MODE == "cloud" and  PHOENIX_API_KEY:
-        _PHOENIX_AVAILABLE = True
+    _PHOENIX_AVAILABLE = True
 except ImportError:
     pass
 
@@ -55,7 +55,7 @@ def init_phoenix(project_name: str = "chapter-09") -> bool:
     Returns True if Phoenix is active, False if unavailable/not configured.
     Call once at the start of your script — before creating any Anthropic clients.
     """
-    global _phoenix_session, _phoenix_instrumented
+    global _phoenix_session, _phoenix_instrumented, _phoenix_provider
 
     if not _PHOENIX_AVAILABLE:
         return False
@@ -85,16 +85,17 @@ def init_phoenix(project_name: str = "chapter-09") -> bool:
         try:
             from phoenix.otel import register
 
-            # endpoint = os.environ.get("PHOENIX_COLLECTOR_ENDPOINT", "http://localhost:6006")
+            collector_endpoint = PHOENIX_ENDPOINT.rstrip("/") or "http://localhost:6006"
             provider = register(
                 project_name=project_name,
                 auto_instrument=True,
                 batch=True,
-                endpoint=PHOENIX_ENDPOINT +"/v1/traces",
+                endpoint=collector_endpoint + "/v1/traces",
                 headers={"Authorization": f"Bearer {PHOENIX_API_KEY}"},
                 protocol="http/protobuf",
                 # verbose=False,
             )
+            _phoenix_provider = provider
 
             # Instrument whichever SDKs are installed
             if _ANTHROPIC_INSTRUMENTOR_AVAILABLE:
@@ -108,6 +109,12 @@ def init_phoenix(project_name: str = "chapter-09") -> bool:
             return False
 
     return _phoenix_instrumented
+
+
+def flush_phoenix() -> None:
+    """Flush batched OpenTelemetry spans before querying Phoenix."""
+    if _phoenix_provider is not None:
+        _phoenix_provider.force_flush()
 
 
 def get_phoenix_url() -> str:

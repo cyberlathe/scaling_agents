@@ -21,6 +21,7 @@ Run:
   LLM_PROVIDER=anthropic python examples/example_02_support_agent.py
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
+import asyncio
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -33,7 +34,7 @@ from scenarios.support_scenarios import ALL_SCENARIOS
 from config.settings import ANTHROPIC_KEY, OPENAI_KEY
 
 
-def main():
+async def main():
     print("\n" + "═" * 62)
     print("  CHAPTER 9 — Customer Support Agent")
     print("  3 scenarios → routing + LangSmith + Phoenix evals")
@@ -81,7 +82,7 @@ def main():
     print(f"{'─'*62}")
 
     if ANTHROPIC_KEY or OPENAI_KEY:
-        run_phoenix_evals(ticket_results, project_name="chapter-09-support")
+        await run_phoenix_evals(ticket_results, project_name="chapter-09-support")
     else:
         print("  No ANTHROPIC_API_KEY or OPENAI_API_KEY — running URL check only (no LLM judge)")
         run_simple_evals(ticket_results)
@@ -95,4 +96,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
